@@ -1,1 +1,699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持久走タイム自動記録アプリ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-amber-50/50 text-slate-800 min-h-screen pb-12">
 
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-extrabold flex items-center gap-2">
+                <span class="text-2xl">🏃‍♂️</span> じきゅうそう タイムきろく
+            </h1>
+            <button id="openSettingsBtn" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-xs font-bold transition flex items-center gap-1.5 border border-white/40 text-white">
+                <i class="fa-solid fa-gear"></i> GASせんせい設定
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- Banner / Notification for GAS WebApp URL status -->
+        <div id="gasStatusBanner" class="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-300 text-amber-900 text-sm flex items-start gap-3 shadow-sm">
+            <i class="fa-solid fa-lightbulb text-amber-500 text-xl mt-0.5"></i>
+            <div class="flex-1">
+                <p class="font-bold">スプレッドシートへの じどう送信が まだ設定されていません</p>
+                <p class="text-xs mt-1 text-amber-800">みぎうえの「GASせんせい設定」からURLを入れると、きろくがスプレッドシートに自動で送られます。（入力をしなくても、このがめんにきろくできます）</p>
+            </div>
+        </div>
+
+        <!-- Main Input Form Card -->
+        <div class="bg-white rounded-3xl shadow-sm border-2 border-orange-100 p-5 md:p-7 space-y-6">
+            <h2 class="text-lg md:text-xl font-extrabold text-slate-800 flex items-center gap-2 border-b-2 border-orange-100 pb-3">
+                <span class="text-2xl">📝</span> 新しいきろくを 入力する
+            </h2>
+
+            <form id="recordForm" class="space-y-6">
+                
+                <!-- Student / Runner Info -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">がくねん・くみ <span class="text-slate-400 text-xs font-normal">(あいててもOK)</span></label>
+                        <input type="text" id="runnerClass" placeholder="れい: 5ねん1くみ" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:outline-none focus:border-orange-400 font-bold text-slate-700 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">なまえ <span class="text-xs text-rose-500 font-bold">*かならず入力</span></label>
+                        <input type="text" id="runnerName" required placeholder="れい: やまだ たろう" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:outline-none focus:border-orange-400 font-bold text-slate-700 transition">
+                    </div>
+                </div>
+
+                <!-- Distance Selection -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">走るきょり（メートル） <span class="text-xs text-rose-500 font-bold">*えらんでね</span></label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 border-slate-200 cursor-pointer transition hover:border-orange-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/80 shadow-sm">
+                            <input type="radio" name="distance" value="1200m" checked class="sr-only">
+                            <span class="text-xl font-extrabold text-slate-800">1200m</span>
+                            <span class="text-xs text-slate-500 font-bold mt-1 bg-white px-2 py-0.5 rounded-full border border-slate-200">トラック6しゅう</span>
+                        </label>
+                        <label class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 border-slate-200 cursor-pointer transition hover:border-orange-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/80 shadow-sm">
+                            <input type="radio" name="distance" value="1400m" class="sr-only">
+                            <span class="text-xl font-extrabold text-slate-800">1400m</span>
+                            <span class="text-xs text-slate-500 font-bold mt-1 bg-white px-2 py-0.5 rounded-full border border-slate-200">トラック7しゅう</span>
+                        </label>
+                        <label class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 border-slate-200 cursor-pointer transition hover:border-orange-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/80 shadow-sm">
+                            <input type="radio" name="distance" value="1600m" class="sr-only">
+                            <span class="text-xl font-extrabold text-slate-800">1600m</span>
+                            <span class="text-xs text-slate-500 font-bold mt-1 bg-white px-2 py-0.5 rounded-full border border-slate-200">トラック8しゅう</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pace Calculator / Target Time Helper Card -->
+                <div class="bg-amber-50/80 p-4 sm:p-5 rounded-2xl border-2 border-amber-200 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-extrabold text-amber-900 flex items-center gap-1.5">
+                            <span class="text-xl">🎯</span> 目標タイムから 1しゅうのスピードを計算する
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 max-w-xs">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="number" id="targetMin" min="0" max="59" placeholder="6" class="w-full text-center text-lg font-extrabold px-3 py-2.5 rounded-xl border-2 border-amber-300 bg-white focus:outline-none focus:border-amber-500">
+                                <span class="absolute right-3 top-3 text-xs text-slate-400 font-bold">ふん</span>
+                            </div>
+                        </div>
+                        <span class="text-xl font-extrabold text-amber-400">:</span>
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="number" id="targetSec" min="0" max="59" placeholder="00" class="w-full text-center text-lg font-extrabold px-3 py-2.5 rounded-xl border-2 border-amber-300 bg-white focus:outline-none focus:border-amber-500">
+                                <span class="absolute right-3 top-3 text-xs text-slate-400 font-bold">びょう</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculated Results Display -->
+                    <div id="targetCalcResult" class="hidden space-y-3 pt-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-amber-200 text-center shadow-sm">
+                                <span class="block text-slate-500 font-bold text-[11px]">1周 (200m) の目安</span>
+                                <span id="lapPaceDisplay" class="text-lg font-extrabold text-orange-500">-- 秒</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-200 text-center shadow-sm">
+                                <span class="block text-slate-500 font-bold text-[11px]">100m あたりの目安</span>
+                                <span id="hundredPaceDisplay" class="text-lg font-extrabold text-orange-500">-- 秒</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-200 text-center shadow-sm col-span-2 sm:col-span-1">
+                                <span class="block text-slate-500 font-bold text-[11px]">ぜんぶで</span>
+                                <span id="lapsCountDisplay" class="text-lg font-extrabold text-slate-700">-- 周</span>
+                            </div>
+                        </div>
+
+                        <!-- Lap Breakdown Table -->
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 text-xs">
+                            <span class="block font-bold text-amber-900 mb-2">⏱️ 各しゅうの つうかタイム目安表</span>
+                            <div id="lapBreakdownList" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-bold">
+                                <!-- JS Dynamic Insertion -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Input & Quick Stopwatch -->
+                <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
+                            <span>⏱️</span> はかったタイム <span class="text-xs text-rose-500 font-bold">*かならず入力</span>
+                        </label>
+                        <!-- Integrated Stopwatch Switch -->
+                        <button type="button" id="toggleStopwatchBtn" class="text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-100 hover:bg-orange-200 px-3 py-1.5 rounded-full transition flex items-center gap-1">
+                            <i class="fa-solid fa-stopwatch"></i> ストップウォッチをつかう
+                        </button>
+                    </div>
+
+                    <!-- Direct Input (Minutes & Seconds) -->
+                    <div class="flex items-center gap-2 max-w-xs">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="number" id="timeMin" min="0" max="59" placeholder="0" required class="w-full text-center text-2xl font-extrabold px-3 py-3 rounded-2xl border-2 border-slate-300 focus:outline-none focus:border-orange-400">
+                                <span class="absolute right-3 top-4 text-xs text-slate-400 font-bold">ふん</span>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-extrabold text-slate-400">:</span>
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="number" id="timeSec" min="0" max="59" placeholder="00" required class="w-full text-center text-2xl font-extrabold px-3 py-3 rounded-2xl border-2 border-slate-300 focus:outline-none focus:border-orange-400">
+                                <span class="absolute right-3 top-4 text-xs text-slate-400 font-bold">びょう</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stopwatch Utility Panel (Collapsible) -->
+                    <div id="stopwatchPanel" class="hidden pt-4 border-t-2 border-slate-200 text-center space-y-3">
+                        <div id="stopwatchDisplay" class="text-4xl font-mono font-extrabold text-slate-800">00:00.0</div>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <button type="button" id="swStartBtn" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm rounded-xl transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-play"></i> スタート
+                            </button>
+                            <button type="button" id="swStopBtn" disabled class="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-stop"></i> ストップ
+                            </button>
+                            <button type="button" id="swApplyBtn" disabled class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-check"></i> タイムにあわせる
+                            </button>
+                            <button type="button" id="swResetBtn" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm rounded-xl transition">
+                                リセット
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date & Memo -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">はかった日</label>
+                        <input type="date" id="recordDate" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 font-bold text-slate-700 focus:outline-none focus:border-orange-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">メモ <span class="text-slate-400 text-xs font-normal">(あいててもOK)</span></label>
+                        <input type="text" id="recordMemo" placeholder="れい: はれ、じこベスト！" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 font-bold text-slate-700 focus:outline-none focus:border-orange-400">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn" class="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold rounded-2xl shadow-md hover:shadow-lg transition flex justify-center items-center gap-2 text-lg active:scale-95">
+                    ✨ きろくをほぞんする（送信）
+                </button>
+            </form>
+        </div>
+
+        <!-- History & Logs -->
+        <div class="bg-white rounded-3xl shadow-sm border-2 border-slate-100 p-5 md:p-7 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <span class="text-xl">🏆</span> こんかい入力した きろく
+                    <span id="recordCount" class="text-xs bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded-full">0けん</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button id="exportCsvBtn" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1">
+                        <i class="fa-solid fa-file-csv"></i> CSVを出力
+                    </button>
+                    <button id="clearAllBtn" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash"></i> けす
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto border-2 border-slate-100 rounded-2xl">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 text-xs uppercase font-bold border-b-2 border-slate-100">
+                        <tr>
+                            <th class="px-4 py-3">ひづけ</th>
+                            <th class="px-4 py-3">くみ</th>
+                            <th class="px-4 py-3">なまえ</th>
+                            <th class="px-4 py-3">きょり</th>
+                            <th class="px-4 py-3">タイム</th>
+                            <th class="px-4 py-3">メモ</th>
+                            <th class="px-4 py-3 text-center">そうしん</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-100 font-medium">
+                        <tr>
+                            <td colspan="7" class="px-4 py-6 text-center text-slate-400 font-bold">
+                                まだ きろくが ありません
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: GAS Integration Settings & Script Guide -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl space-y-6">
+            
+            <div class="flex justify-between items-center border-b pb-4">
+                <h3 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-orange-500"></i> スプレッドシート（GAS）設定
+                </h3>
+                <button id="closeSettingsBtn" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- URL Input -->
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-slate-700">GAS ウェブアプリ URL</label>
+                <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:outline-none focus:border-orange-400 text-sm font-medium">
+                <p class="text-xs text-slate-500">先生がつくった Google Apps Script の URL をはりつけて「ほぞん」をおしてください。</p>
+            </div>
+
+            <!-- Setup Instructions -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-3">
+                <h4 class="font-bold text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-book text-orange-500"></i> スプレッドシート側の じゅんび手順
+                </h4>
+                <ol class="list-decimal list-inside space-y-1.5 text-xs text-slate-600 font-medium">
+                    <li>きろくしたい <b>Googleスプレッドシート</b> を開きます。</li>
+                    <li>メニューの「<b>拡張機能</b>」＞「<b>Apps Script</b>」をえらびます。</li>
+                    <li>がめんに 下のコードを はりつけて ほぞんします。</li>
+                </ol>
+
+                <!-- GAS Code Snippet Block -->
+                <div class="relative bg-slate-800 text-slate-100 rounded-xl p-3 text-xs font-mono overflow-x-auto">
+                    <button id="copyGasCodeBtn" class="absolute top-2 right-2 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-[10px] flex items-center gap-1 font-bold">
+                        <i class="fa-regular fa-copy"></i> コードをコピー
+                    </button>
+                    <pre><code id="gasCodeBlock">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["日時", "学年・組", "氏名", "距離", "タイム", "メモ"]);
+  }
+  
+  sheet.appendRow([
+    data.date,
+    data.runnerClass,
+    data.runnerName,
+    data.distance,
+    data.time,
+    data.memo
+  ]);
+  
+  return ContentService.createTextOutput(JSON.stringify({result: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</code></pre>
+                </div>
+
+                <ol start="4" class="list-decimal list-inside space-y-1.5 text-xs text-slate-600 font-medium">
+                    <li>みぎうえの「<b>デプロイ</b>」＞「<b>新しいデプロイ</b>」をクリックします。</li>
+                    <li>「<b>ウェブアプリ</b>」をえらびます。</li>
+                    <li>アクセスできるユーザーを「<b>全員 (Anyone)</b>」にして「デプロイ」を押します。</li>
+                    <li>出てきた「<b>ウェブアプリ URL</b>」をコピーして、上の入力らんにはりつけます。</li>
+                </ol>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="saveSettingsBtn" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-sm rounded-2xl transition shadow-md">
+                    設定をほぞんする
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Message -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl text-sm hidden flex items-center gap-3 z-50 transition-all duration-300 font-bold">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <span id="toastMsg">ほぞんしました</span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const recordForm = document.getElementById('recordForm');
+        const runnerClassInput = document.getElementById('runnerClass');
+        const runnerNameInput = document.getElementById('runnerName');
+        const timeMinInput = document.getElementById('timeMin');
+        const timeSecInput = document.getElementById('timeSec');
+        const recordDateInput = document.getElementById('recordDate');
+        const recordMemoInput = document.getElementById('recordMemo');
+        const historyTableBody = document.getElementById('historyTableBody');
+        const recordCount = document.getElementById('recordCount');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        
+        // GAS Settings Modal DOMs
+        const settingsModal = document.getElementById('settingsModal');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const gasUrlInput = document.getElementById('gasUrlInput');
+        const gasStatusBanner = document.getElementById('gasStatusBanner');
+        const copyGasCodeBtn = document.getElementById('copyGasCodeBtn');
+
+        // Stopwatch DOMs
+        const toggleStopwatchBtn = document.getElementById('toggleStopwatchBtn');
+        const stopwatchPanel = document.getElementById('stopwatchPanel');
+        const stopwatchDisplay = document.getElementById('stopwatchDisplay');
+        const swStartBtn = document.getElementById('swStartBtn');
+        const swStopBtn = document.getElementById('swStopBtn');
+        const swApplyBtn = document.getElementById('swApplyBtn');
+        const swResetBtn = document.getElementById('swResetBtn');
+
+        // Target Pace Calculation DOMs
+        const targetMinInput = document.getElementById('targetMin');
+        const targetSecInput = document.getElementById('targetSec');
+        const targetCalcResult = document.getElementById('targetCalcResult');
+        const lapPaceDisplay = document.getElementById('lapPaceDisplay');
+        const hundredPaceDisplay = document.getElementById('hundredPaceDisplay');
+        const lapsCountDisplay = document.getElementById('lapsCountDisplay');
+        const lapBreakdownList = document.getElementById('lapBreakdownList');
+        const distanceRadios = document.querySelectorAll('input[name="distance"]');
+
+        // App State
+        let records = [];
+        let gasWebUrl = localStorage.getItem('endurance_gas_url') || '';
+        let swInterval = null;
+        let swElapsedTime = 0;
+
+        // Format Seconds into M:SS string
+        function formatTimeFromSec(secTotal) {
+            const m = Math.floor(secTotal / 60);
+            const s = Math.round(secTotal % 60);
+            if (m > 0) {
+                return `${m}分${String(s).padStart(2, '0')}秒`;
+            }
+            return `${s}秒`;
+        }
+
+        // Calculate Target Lap Pace
+        function calculateTargetPace() {
+            const min = parseInt(targetMinInput.value) || 0;
+            const sec = parseInt(targetSecInput.value) || 0;
+            const totalSeconds = (min * 60) + sec;
+
+            if (totalSeconds <= 0) {
+                targetCalcResult.classList.add('hidden');
+                return;
+            }
+
+            const selectedDistanceStr = document.querySelector('input[name="distance"]:checked')?.value || '1200m';
+            const totalMeters = parseInt(selectedDistanceStr); // 1200, 1400, or 1600
+            const laps = totalMeters / 200; // e.g. 1200m -> 6 laps
+
+            const secPerLap = totalSeconds / laps; // 秒/200m
+            const secPer100m = totalSeconds / (totalMeters / 100); // 秒/100m
+
+            lapPaceDisplay.textContent = `${secPerLap.toFixed(1)} 秒`;
+            hundredPaceDisplay.textContent = `${secPer100m.toFixed(1)} 秒`;
+            lapsCountDisplay.textContent = `${laps} 周`;
+
+            // Build Lap Breakdown List
+            let breakdownHtml = '';
+            for (let i = 1; i <= laps; i++) {
+                const cumulativeSec = secPerLap * i;
+                const meterMark = i * 200;
+                breakdownHtml += `
+                    <div class="bg-amber-50/70 p-2 rounded-lg border border-amber-200/60">
+                        <span class="block text-[10px] text-amber-800 font-bold">${i}周目 (${meterMark}m)</span>
+                        <span class="text-xs text-orange-600 font-extrabold">${formatTimeFromSec(cumulativeSec)}</span>
+                    </div>
+                `;
+            }
+            lapBreakdownList.innerHTML = breakdownHtml;
+
+            targetCalcResult.classList.remove('hidden');
+        }
+
+        // Attach listeners for Pace Calculation
+        targetMinInput.addEventListener('input', calculateTargetPace);
+        targetSecInput.addEventListener('input', calculateTargetPace);
+        distanceRadios.forEach(radio => radio.addEventListener('change', calculateTargetPace));
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            recordDateInput.value = today;
+
+            // Load saved GAS URL
+            if (gasWebUrl) {
+                gasUrlInput.value = gasWebUrl;
+                updateGasBannerState(true);
+            } else {
+                updateGasBannerState(false);
+            }
+
+            // Render existing records if any in local memory state
+            renderRecords();
+        });
+
+        // Toggle Settings Modal
+        openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        // Save Settings
+        saveSettingsBtn.addEventListener('click', () => {
+            gasWebUrl = gasUrlInput.value.trim();
+            localStorage.setItem('endurance_gas_url', gasWebUrl);
+            updateGasBannerState(!!gasWebUrl);
+            settingsModal.classList.add('hidden');
+            showToast('GASの設定を保存しました');
+        });
+
+        // Banner Status
+        function updateGasBannerState(isConfigured) {
+            if (isConfigured) {
+                gasStatusBanner.className = "p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 text-xs flex items-center justify-between font-bold shadow-sm";
+                gasStatusBanner.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
+                        <span>スプレッドシート連携が「OK」になっています</span>
+                    </div>
+                    <button onclick="document.getElementById('openSettingsBtn').click()" class="underline hover:text-emerald-700">へんこう</button>
+                `;
+            } else {
+                gasStatusBanner.className = "p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-300 text-amber-900 text-sm flex items-start gap-3 shadow-sm";
+                gasStatusBanner.innerHTML = `
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-xl mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="font-bold">スプレッドシートへの じどう送信が まだ設定されていません</p>
+                        <p class="text-xs mt-1 text-amber-800">みぎうえの「GASせんせい設定」からURLを入れると、きろくがスプレッドシートに自動で送られます。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Copy GAS Code Script
+        copyGasCodeBtn.addEventListener('click', () => {
+            const codeText = document.getElementById('gasCodeBlock').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            showToast('GASのプログラムをコピーしました！');
+        });
+
+        // Stopwatch Functionality
+        toggleStopwatchBtn.addEventListener('click', () => {
+            stopwatchPanel.classList.toggle('hidden');
+        });
+
+        function updateSwDisplay() {
+            const minutes = Math.floor(swElapsedTime / 60000);
+            const seconds = Math.floor((swElapsedTime % 60000) / 1000);
+            const tenths = Math.floor((swElapsedTime % 1000) / 100);
+            stopwatchDisplay.textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+        }
+
+        swStartBtn.addEventListener('click', () => {
+            const startTime = Date.now() - swElapsedTime;
+            swInterval = setInterval(() => {
+                swElapsedTime = Date.now() - startTime;
+                updateSwDisplay();
+            }, 100);
+            swStartBtn.disabled = true;
+            swStopBtn.disabled = false;
+            swApplyBtn.disabled = true;
+        });
+
+        swStopBtn.addEventListener('click', () => {
+            clearInterval(swInterval);
+            swStartBtn.disabled = false;
+            swStopBtn.disabled = true;
+            swApplyBtn.disabled = false;
+        });
+
+        swResetBtn.addEventListener('click', () => {
+            clearInterval(swInterval);
+            swElapsedTime = 0;
+            updateSwDisplay();
+            swStartBtn.disabled = false;
+            swStopBtn.disabled = true;
+            swApplyBtn.disabled = true;
+        });
+
+        swApplyBtn.addEventListener('click', () => {
+            const minutes = Math.floor(swElapsedTime / 60000);
+            const seconds = Math.floor((swElapsedTime % 60000) / 1000);
+            timeMinInput.value = minutes;
+            timeSecInput.value = seconds;
+            showToast('タイムを入力しました');
+        });
+
+        // Handle Form Submission
+        recordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const distanceRadio = document.querySelector('input[name="distance"]:checked');
+            const min = parseInt(timeMinInput.value) || 0;
+            const sec = parseInt(timeSecInput.value) || 0;
+            const formattedTime = `${min}分${String(sec).padStart(2, '0')}秒`;
+
+            const recordData = {
+                id: Date.now(),
+                date: recordDateInput.value,
+                runnerClass: runnerClassInput.value.trim(),
+                runnerName: runnerNameInput.value.trim(),
+                distance: distanceRadio ? distanceRadio.value : '1200m',
+                time: formattedTime,
+                memo: recordMemoInput.value.trim(),
+                status: 'sending'
+            };
+
+            // Add to Local Memory Array
+            records.unshift(recordData);
+            renderRecords();
+
+            // Reset Time & Name
+            runnerNameInput.value = '';
+            timeMinInput.value = '';
+            timeSecInput.value = '';
+            recordMemoInput.value = '';
+
+            // Send Data to Google Sheets via GAS (if URL configured)
+            if (gasWebUrl) {
+                try {
+                    await fetch(gasWebUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(recordData)
+                    });
+
+                    recordData.status = 'success';
+                    showToast('きろくをほぞんして 送信しました！');
+                } catch (err) {
+                    console.error('GAS Send Error:', err);
+                    recordData.status = 'error';
+                    showToast('送信に しっぱいしました', true);
+                }
+            } else {
+                recordData.status = 'offline';
+                showToast('きろくをほぞんしました');
+            }
+
+            renderRecords();
+        });
+
+        // Render Table Rows
+        function renderRecords() {
+            recordCount.textContent = `${records.length}けん`;
+
+            if (records.length === 0) {
+                historyTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-6 text-center text-slate-400 font-bold">
+                            まだ きろくが ありません
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            historyTableBody.innerHTML = records.map(rec => {
+                let statusBadge = '';
+                if (rec.status === 'success') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check"></i> OK</span>`;
+                } else if (rec.status === 'sending') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-spinner fa-spin"></i> 送信中</span>`;
+                } else if (rec.status === 'error') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800"><i class="fa-solid fa-circle-exclamation"></i> エラー</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600"><i class="fa-solid fa-hard-drive"></i> ここだけ</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-amber-50/40 transition">
+                        <td class="px-4 py-3 whitespace-nowrap font-bold">${rec.date}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">${rec.runnerClass || '-'}</td>
+                        <td class="px-4 py-3 font-extrabold text-slate-800 whitespace-nowrap">${rec.runnerName}</td>
+                        <td class="px-4 py-3 whitespace-nowrap"><span class="px-2.5 py-1 bg-amber-100 rounded-lg text-xs font-bold text-amber-900">${rec.distance}</span></td>
+                        <td class="px-4 py-3 font-extrabold text-orange-600 whitespace-nowrap text-base">${rec.time}</td>
+                        <td class="px-4 py-3 text-slate-500 max-w-xs truncate">${rec.memo || '-'}</td>
+                        <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // CSV Export Functionality
+        exportCsvBtn.addEventListener('click', () => {
+            if (records.length === 0) {
+                showToast('出力するきろくがありません', true);
+                return;
+            }
+
+            const headers = ['日付', '学年・組', '氏名', '距離', 'タイム', 'メモ'];
+            const rows = records.map(r => [
+                `"${r.date}"`,
+                `"${r.runnerClass}"`,
+                `"${r.runnerName}"`,
+                `"${r.distance}"`,
+                `"${r.time}"`,
+                `"${r.memo}"`
+            ]);
+
+            const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `持久走きろく_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Clear History
+        clearAllBtn.addEventListener('click', () => {
+            if (records.length === 0) return;
+            records = [];
+            renderRecords();
+            showToast('がめんのきろくを けしました');
+        });
+
+        // Toast Notification Function
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-xl";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-xl";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
